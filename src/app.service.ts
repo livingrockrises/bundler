@@ -12,7 +12,8 @@ import {  paymasterAddress,
 import { ethers, BigNumber } from 'ethers';
 import { hexConcat } from 'ethers/lib/utils';
 const abi = ethers.utils.defaultAbiCoder;
-
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 @Injectable()
 export class AppService {
@@ -26,6 +27,8 @@ export class AppService {
 
   // biconomyPaymasterSigningKey = '1deb83a0b24016f1d0de84963a3c60ceff6a7c08dcebefc5e40ac92247848b65'
   getHello(): string {
+    console.log(process.env.PRIVATE_KEY);
+    
     return 'Hello World!';
   }
   async signUserOpMessage(userOp: UserOpType) {
