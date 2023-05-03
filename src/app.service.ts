@@ -23,7 +23,7 @@ export class AppService {
   biconomyPaymasterSigningKey = process.env.PRIVATE_KEY
   signer = new ethers.Wallet(this.biconomyPaymasterSigningKey)
   // signerAddress = ''
-  web3Provider = new ethers.providers.JsonRpcProvider(PROVIDER_URL)
+  web3Provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL)
 
   // biconomyPaymasterSigningKey = '1deb83a0b24016f1d0de84963a3c60ceff6a7c08dcebefc5e40ac92247848b65'
   getHello(): string {
@@ -31,6 +31,86 @@ export class AppService {
     
     return 'Hello World!';
   }
+  // async signUserOpMessage(userOp: UserOpType) {
+  //   try {
+  //     // const {
+  //     //   paymasterAddress,
+  //     //   paymasterAbi,
+  //     //   paymasterFundingKey,
+  //     //   chainId,
+  //     // } = data;
+
+  //     this.logger.log(`userOp: ${JSON.stringify(userOp)}`);
+
+  //     if (!paymasterAddress) {
+  //       throw new HttpException(
+  //         'Paymaster address could not be fetched',
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+
+  //     if (!paymasterAbi) {
+  //       throw new HttpException(
+  //         'Paymaster abi could not be fetched',
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+
+  //     if (!paymasterFundingKey) {
+  //       throw new HttpException(
+  //         'Paymaster funding key could not be fetched',
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+
+  //     const paymaster = new ethers.Contract(
+  //       paymasterAddress,
+  //       paymasterAbi,
+  //       this.provider,
+  //     );
+  //     if (!paymaster) {
+  //       throw new HttpException(
+  //         `Error in creating instance of paymaster for address: ${paymasterAddress}`,
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+
+  //     if (!this.biconomyPaymasterSigningKey) {
+  //       throw new HttpException(
+  //         'Biconomy Paymaster Signing Key not found in config',
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+
+  //     const paymasterSigner = new ethers.Wallet(this.biconomyPaymasterSigningKey);
+  //     if (!paymasterSigner) {
+  //       throw new HttpException(
+  //         `Instance of paymasterSigner could not be created`,
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+
+  //     const hash = await paymaster.getHash(userOp);
+  //     this.logger.log(`For userOp hash is: ${hash}`);
+
+  //     const signedMessage = await paymasterSigner.signMessage(ethers.utils.arrayify(hash));
+  //     this.logger.log(`For userOp signedMessage is: ${signedMessage}`);
+
+  //     const idAndSig = abi.encode(['address', 'bytes'], [paymasterFundingKey, signedMessage]);
+  //     this.logger.log(`For userOp idAndSig is: ${idAndSig}`);
+
+  //     const paymasterAndData = hexConcat([paymasterAddress, signedMessage]);
+  //     this.logger.log(`For userOp paymasterAndData is ${paymasterAndData}`);
+
+  //     return paymasterAndData;
+  //   } catch (error) {
+  //     throw new HttpException(
+  //       error,
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
+
   async signUserOpMessage(userOp: UserOpType) {
     try {
       // const {
@@ -41,65 +121,29 @@ export class AppService {
       // } = data;
 
       this.logger.log(`userOp: ${JSON.stringify(userOp)}`);
-
-      if (!paymasterAddress) {
-        throw new HttpException(
-          'Paymaster address could not be fetched',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
-      if (!paymasterAbi) {
-        throw new HttpException(
-          'Paymaster abi could not be fetched',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
-      if (!paymasterFundingKey) {
-        throw new HttpException(
-          'Paymaster funding key could not be fetched',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
+      const VALID_UNTIL = "0x00000000deadbeef";
+      const VALID_AFTER = "0x0000000000001234";
+      const MOCK_SIG = "0x1234";
+      const ERC20_ADDR = ethers.constants.AddressZero;
+      const EX_RATE = ethers.constants.WeiPerEther.mul(1000);
       const paymaster = new ethers.Contract(
         paymasterAddress,
         paymasterAbi,
         this.provider,
       );
-      if (!paymaster) {
-        throw new HttpException(
-          `Error in creating instance of paymaster for address: ${paymasterAddress}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
-      if (!this.biconomyPaymasterSigningKey) {
-        throw new HttpException(
-          'Biconomy Paymaster Signing Key not found in config',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
 
       const paymasterSigner = new ethers.Wallet(this.biconomyPaymasterSigningKey);
-      if (!paymasterSigner) {
-        throw new HttpException(
-          `Instance of paymasterSigner could not be created`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
 
-      const hash = await paymaster.getHash(userOp);
+      const hash = await paymaster.getHash(userOp, VALID_UNTIL, VALID_AFTER, ERC20_ADDR, EX_RATE);
       this.logger.log(`For userOp hash is: ${hash}`);
 
       const signedMessage = await paymasterSigner.signMessage(ethers.utils.arrayify(hash));
       this.logger.log(`For userOp signedMessage is: ${signedMessage}`);
 
-      const idAndSig = abi.encode(['address', 'bytes'], [paymasterFundingKey, signedMessage]);
+      const idAndSig = abi.encode(["uint48", "uint48", "address", "uint256"],  [VALID_UNTIL, VALID_AFTER, ERC20_ADDR, EX_RATE]);
       this.logger.log(`For userOp idAndSig is: ${idAndSig}`);
 
-      const paymasterAndData = hexConcat([paymasterAddress, signedMessage]);
+      const paymasterAndData = hexConcat([paymasterAddress, idAndSig, signedMessage]);
       this.logger.log(`For userOp paymasterAndData is ${paymasterAndData}`);
 
       return paymasterAndData;

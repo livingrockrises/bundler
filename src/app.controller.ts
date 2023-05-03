@@ -11,14 +11,14 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-  @Post('signing-service')
+  @Post('sign/user-op')
   async SignMessage(
   @Body() signingDto: SigningUserOpDto,
   ) {
     const { userOp } = signingDto;
     const paymasterAndData = await this.appService.signUserOpMessage(userOp);
     return {
-      code: HttpStatus.OK,
+      statusCode: HttpStatus.OK,
       data: {
         paymasterAndData,
       },
