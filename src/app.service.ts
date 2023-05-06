@@ -19,14 +19,11 @@ export class AppService {
   readonly logger = new Logger(AppService.name);
   // provider = new ethers.providers.JsonRpcProvider('https://eth-goerli.g.alchemy.com/v2/477qAVdmEssSZbEPaUMTZXqyetQx5fxg')
   provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
-  biconomyPaymasterSigningKey = process.env.PRIVATE_KEY;
+  biconomyPaymasterSigningKey = process.env.VERIFYING_SIGNER_PRIVATE_KEY;
   signer = new ethers.Wallet(this.biconomyPaymasterSigningKey);
-  // signerAddress = ''
   web3Provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
 
   getHello(): string {
-    console.log(process.env.PRIVATE_KEY);
-
     return 'Hello World!';
   }
   // async signUserOpMessage(userOp: UserOpType) {
@@ -111,6 +108,7 @@ export class AppService {
 
   async signUserOpMessage(userOp: UserOpType) {
     try {
+      const partialUserOp: any = userOp;
       // const {
       //   paymasterAddress,
       //   paymasterAbi,
@@ -126,24 +124,38 @@ export class AppService {
       const VALID_AFTER = '0x0000000000001234';
 
       const MOCK_SIG = '0x1234';
-      const ERC20_ADDR = '0x3870419Ba2BBf0127060bCB37f69A1b1C090992B';
+      const ERC20_ADDR = '0xdA5289fCAAF71d52a80A254da614a192b693e977';
       const EX_RATE = '1002100';
+      const MOCK_FEE = '0';
       const paymaster = new ethers.Contract(
         paymasterAddress,
         paymasterAbi,
         this.provider,
       );
 
+      const encodedData =
+        '0x00000000000000000000000000000000000000000000000000000000deadbeef00000000000000000000000000000000000000000000000000000000000012340000000000000000000000009fe46736679d2d9a65f0992f2272de9f3c7fa6e000000000000000000000000000000000000000000000000000000000000ee8cc0000000000000000000000000000000000000000000000000000000000000000';
+      const signature = '0x' + '00'.repeat(65);
+      partialUserOp.paymasterAndData = hexConcat([
+        paymasterAddress,
+        ethers.utils.hexlify(1).slice(0, 4),
+        encodedData,
+        signature,
+      ]);
+      console.log(partialUserOp.paymasterAndData);
+
       const paymasterSigner = new ethers.Wallet(
-        <PK>,
+        this.biconomyPaymasterSigningKey,
       );
 
       const hash = await paymaster.getHash(
-        userOp,
+        partialUserOp,
+        ethers.utils.hexlify(1).slice(2, 4),
         VALID_UNTIL,
         VALID_AFTER,
         ERC20_ADDR,
         EX_RATE,
+        MOCK_FEE,
       );
       this.logger.log(`For userOp hash is: ${hash}`);
 
@@ -153,13 +165,14 @@ export class AppService {
       this.logger.log(`For userOp signedMessage is: ${signedMessage}`);
 
       const idAndSig = ethers.utils.defaultAbiCoder.encode(
-        ['uint48', 'uint48', 'address', 'uint256'],
-        [VALID_UNTIL, VALID_AFTER, ERC20_ADDR, EX_RATE],
+        ['uint48', 'uint48', 'address', 'uint256', 'uint256'],
+        [VALID_UNTIL, VALID_AFTER, ERC20_ADDR, EX_RATE, MOCK_FEE],
       );
       this.logger.log(`For userOp idAndSig is: ${idAndSig}`);
 
       const paymasterAndData = hexConcat([
         paymasterAddress,
+        ethers.utils.hexlify(1).slice(0, 4),
         idAndSig,
         signedMessage,
       ]);
