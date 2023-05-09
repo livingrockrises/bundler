@@ -1,9 +1,8 @@
-export const paymasterAddress = '0x58b7C477cDA49203e8694fD3Efb09B77EDd44887';
+export const paymasterAddress = '0xB9CbFd39d0C9C35F3B5e00214eE80171Ac543Cca';
 export const paymasterFundingKey = '0xD68fdc0B89010a9039C2C38f4a3E5c4Ed98f7bC1';
-export const chainId = 80001;
+export const chainId = 137;
 export const ENTRY_POINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
-export const PROVIDER_URL =
-  'https://polygon-mumbai.g.alchemy.com/v2/6n3cfluk8d-pRdlVwCAJu6C-8lQRJKga';
+export const PROVIDER_URL = 'https://polygon.llamarpc.com';
 export const paymasterAbi = [
   {
     inputs: [

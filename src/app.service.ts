@@ -124,9 +124,9 @@ export class AppService {
       const VALID_AFTER = '0x0000000000001234';
 
       const MOCK_SIG = '0x1234';
-      const ERC20_ADDR = '0xdA5289fCAAF71d52a80A254da614a192b693e977';
-      const EX_RATE = '1002100';
-      const MOCK_FEE = '0';
+      const ERC20_ADDR = '0x91c89A94567980f0e9723b487b0beD586eE96aa7';
+      const EX_RATE = '2891034400000000000'; // 2891034400000000000
+      const MOCK_FEE = '100000000000000000';
       const paymaster = new ethers.Contract(
         paymasterAddress,
         paymasterAbi,
@@ -138,7 +138,7 @@ export class AppService {
       const signature = '0x' + '00'.repeat(65);
       partialUserOp.paymasterAndData = hexConcat([
         paymasterAddress,
-        ethers.utils.hexlify(1).slice(0, 4),
+        ethers.utils.hexlify(0).slice(0, 4),
         encodedData,
         signature,
       ]);
@@ -150,7 +150,7 @@ export class AppService {
 
       const hash = await paymaster.getHash(
         partialUserOp,
-        ethers.utils.hexlify(1).slice(2, 4),
+        ethers.utils.hexlify(0).slice(2, 4),
         VALID_UNTIL,
         VALID_AFTER,
         ERC20_ADDR,
@@ -172,7 +172,7 @@ export class AppService {
 
       const paymasterAndData = hexConcat([
         paymasterAddress,
-        ethers.utils.hexlify(1).slice(0, 4),
+        ethers.utils.hexlify(0).slice(0, 4),
         idAndSig,
         signedMessage,
       ]);
