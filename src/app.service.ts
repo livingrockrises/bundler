@@ -133,7 +133,7 @@ export class AppService {
         this.provider,
       );
 
-      const encodedData =
+      /*const encodedData =
         '0x00000000000000000000000000000000000000000000000000000000deadbeef00000000000000000000000000000000000000000000000000000000000012340000000000000000000000009fe46736679d2d9a65f0992f2272de9f3c7fa6e000000000000000000000000000000000000000000000000000000000000ee8cc0000000000000000000000000000000000000000000000000000000000000000';
       const signature = '0x' + '00'.repeat(65);
       partialUserOp.paymasterAndData = hexConcat([
@@ -142,7 +142,7 @@ export class AppService {
         encodedData,
         signature,
       ]);
-      console.log(partialUserOp.paymasterAndData);
+      console.log(partialUserOp.paymasterAndData);*/
 
       const paymasterSigner = new ethers.Wallet(
         this.biconomyPaymasterSigningKey,
