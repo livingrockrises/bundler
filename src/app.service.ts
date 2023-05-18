@@ -7,6 +7,7 @@ import {
   ENTRY_POINT_ABI,
   ENTRY_POINT_ADDRESS,
   PROVIDER_URL,
+  oracleAggregatorAddress,
 } from './constants';
 import { ethers, BigNumber } from 'ethers';
 import { hexConcat } from 'ethers/lib/utils';
@@ -154,6 +155,7 @@ export class AppService {
         VALID_UNTIL,
         VALID_AFTER,
         ERC20_ADDR,
+        oracleAggregatorAddress,
         EX_RATE,
         MOCK_FEE,
       );
@@ -165,8 +167,15 @@ export class AppService {
       this.logger.log(`For userOp signedMessage is: ${signedMessage}`);
 
       const idAndSig = ethers.utils.defaultAbiCoder.encode(
-        ['uint48', 'uint48', 'address', 'uint256', 'uint256'],
-        [VALID_UNTIL, VALID_AFTER, ERC20_ADDR, EX_RATE, MOCK_FEE],
+        ['uint48', 'uint48', 'address', 'address', 'uint256', 'uint256'],
+        [
+          VALID_UNTIL,
+          VALID_AFTER,
+          ERC20_ADDR,
+          oracleAggregatorAddress,
+          EX_RATE,
+          MOCK_FEE,
+        ],
       );
       this.logger.log(`For userOp idAndSig is: ${idAndSig}`);
 
