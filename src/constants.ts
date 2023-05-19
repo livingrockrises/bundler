@@ -1,4 +1,6 @@
-export const paymasterAddress = '0xB9CbFd39d0C9C35F3B5e00214eE80171Ac543Cca';
+export const paymasterAddress = '0x0987404beB853f24F36C76c3e18Adcad7AB44f93';
+export const oracleAggregatorAddress =
+  '0x7ED8428288323e8583DeFC90BFDF2dAD91cFF889';
 export const paymasterFundingKey = '0xD68fdc0B89010a9039C2C38f4a3E5c4Ed98f7bC1';
 export const chainId = 137;
 export const ENTRY_POINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
@@ -13,11 +15,7 @@ export const paymasterAbi = [
         type: 'address',
       },
       { internalType: 'address', name: '_verifyingSigner', type: 'address' },
-      {
-        internalType: 'contract IOracleAggregator',
-        name: '_oracleAggregator',
-        type: 'address',
-      },
+      { internalType: 'address', name: '_weth9', type: 'address' },
     ],
     stateMutability: 'payable',
     type: 'constructor',
@@ -47,20 +45,27 @@ export const paymasterAbi = [
   { inputs: [], name: 'OracleAggregatorCannotBeZero', type: 'error' },
   { inputs: [], name: 'OwnerCannotBeZero', type: 'error' },
   { inputs: [], name: 'VerifyingSignerCannotBeZero', type: 'error' },
+  { inputs: [], name: 'WETH9CannotBeZero', type: 'error' },
   {
     anonymous: false,
     inputs: [
       {
         indexed: true,
         internalType: 'uint256',
-        name: '_oldValue',
+        name: '_oldOverheadCost',
         type: 'uint256',
       },
       {
         indexed: true,
         internalType: 'uint256',
-        name: '_newValue',
+        name: '_newOverheadCost',
         type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: '_actor',
+        type: 'address',
       },
     ],
     name: 'EPGasOverheadChanged',
@@ -89,50 +94,6 @@ export const paymasterAbi = [
       },
     ],
     name: 'FeeReceiverChanged',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: '_token',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: '_actor',
-        type: 'address',
-      },
-    ],
-    name: 'NewFeeTokenSupported',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: '_oldoracleAggregator',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: '_neworacleAggregator',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: '_actor',
-        type: 'address',
-      },
-    ],
-    name: 'OracleAggregatorChanged',
     type: 'event',
   },
   {
@@ -170,13 +131,100 @@ export const paymasterAbi = [
         type: 'address',
       },
       {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'totalCharge',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'oracleAggregator',
+        type: 'address',
+      },
+      {
         indexed: false,
         internalType: 'uint256',
-        name: 'cost',
+        name: 'premium',
         type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'bytes32',
+        name: 'userOpHash',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'exchangeRate',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'enum BiconomyTokenPaymaster.ExchangeRateSource',
+        name: 'priceSource',
+        type: 'uint8',
       },
     ],
     name: 'TokenPaymasterOperation',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'charge',
+        type: 'uint256',
+      },
+    ],
+    name: 'TokenPaymentDue',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'dexRouterAddress',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes',
+        name: 'routerCalldata',
+        type: 'bytes',
+      },
+      { indexed: false, internalType: 'bool', name: 'success', type: 'bool' },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'gasAmountDeposited',
+        type: 'uint256',
+      },
+    ],
+    name: 'TokenSwappedAndGasDeposited',
     type: 'event',
   },
   {
@@ -214,6 +262,17 @@ export const paymasterAbi = [
     type: 'function',
   },
   {
+    inputs: [
+      { internalType: 'address', name: '_token', type: 'address' },
+      { internalType: 'address', name: '_dexRouter', type: 'address' },
+      { internalType: 'uint256', name: '_amount', type: 'uint256' },
+    ],
+    name: 'approveRouterPrior',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'deposit',
     outputs: [],
@@ -225,15 +284,6 @@ export const paymasterAbi = [
     name: 'entryPoint',
     outputs: [
       { internalType: 'contract IEntryPoint', name: '', type: 'address' },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: '_token', type: 'address' }],
-    name: 'exchangePrice',
-    outputs: [
-      { internalType: 'uint256', name: 'exchangeRate', type: 'uint256' },
     ],
     stateMutability: 'view',
     type: 'function',
@@ -292,27 +342,12 @@ export const paymasterAbi = [
       { internalType: 'uint48', name: 'validUntil', type: 'uint48' },
       { internalType: 'uint48', name: 'validAfter', type: 'uint48' },
       { internalType: 'address', name: 'feeToken', type: 'address' },
+      { internalType: 'address', name: 'oracleAggregator', type: 'address' },
       { internalType: 'uint256', name: 'exchangeRate', type: 'uint256' },
       { internalType: 'uint256', name: 'fee', type: 'uint256' },
     ],
     name: 'getHash',
     outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: '_token', type: 'address' }],
-    name: 'isSupportedToken',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'oracleAggregator',
-    outputs: [
-      { internalType: 'contract IOracleAggregator', name: '', type: 'address' },
-    ],
     stateMutability: 'view',
     type: 'function',
   },
@@ -337,6 +372,7 @@ export const paymasterAbi = [
       { internalType: 'uint48', name: 'validUntil', type: 'uint48' },
       { internalType: 'uint48', name: 'validAfter', type: 'uint48' },
       { internalType: 'address', name: 'feeToken', type: 'address' },
+      { internalType: 'address', name: 'oracleAggregator', type: 'address' },
       { internalType: 'uint256', name: 'exchangeRate', type: 'uint256' },
       { internalType: 'uint256', name: 'fee', type: 'uint256' },
       { internalType: 'bytes', name: 'signature', type: 'bytes' },
@@ -377,13 +413,9 @@ export const paymasterAbi = [
   },
   {
     inputs: [
-      {
-        internalType: 'address',
-        name: '_newOracleAggregator',
-        type: 'address',
-      },
+      { internalType: 'uint256', name: '_newOverheadCost', type: 'uint256' },
     ],
-    name: 'setOracleAggregator',
+    name: 'setUnaccountedEPGasOverhead',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -392,23 +424,26 @@ export const paymasterAbi = [
     inputs: [
       { internalType: 'address', name: '_newVerifyingSigner', type: 'address' },
     ],
-    name: 'setSigner',
+    name: 'setVerifyingSigner',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'address', name: '_token', type: 'address' }],
-    name: 'setTokenAllowed',
-    outputs: [],
+    inputs: [
+      { internalType: 'address', name: '_dexRouter', type: 'address' },
+      { internalType: 'bytes', name: '_swapData', type: 'bytes' },
+      { internalType: 'bool', name: '_approveRouter', type: 'bool' },
+      { internalType: 'address', name: '_token', type: 'address' },
+      { internalType: 'uint256', name: '_amount', type: 'uint256' },
+      { internalType: 'uint256', name: '_maxDepositToEP', type: 'uint256' },
+    ],
+    name: 'swapTokenForNativeAndDeposit',
+    outputs: [
+      { internalType: 'bool', name: 'success', type: 'bool' },
+      { internalType: 'uint256', name: 'depositAmount', type: 'uint256' },
+    ],
     stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: 'value', type: 'uint256' }],
-    name: 'setUnaccountedEPGasOverhead',
-    outputs: [],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -416,6 +451,13 @@ export const paymasterAbi = [
     name: 'transferOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'unaccountedCost',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -476,6 +518,55 @@ export const paymasterAbi = [
     type: 'function',
   },
   {
+    inputs: [{ internalType: 'address', name: 'dest', type: 'address' }],
+    name: 'withdrawAllNative',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'contract IERC20', name: 'token', type: 'address' },
+      { internalType: 'address', name: 'target', type: 'address' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'withdrawERC20',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'contract IERC20', name: 'token', type: 'address' },
+      { internalType: 'address', name: 'target', type: 'address' },
+    ],
+    name: 'withdrawERC20Full',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'contract IERC20[]', name: 'token', type: 'address[]' },
+      { internalType: 'address', name: 'target', type: 'address' },
+      { internalType: 'uint256[]', name: 'amount', type: 'uint256[]' },
+    ],
+    name: 'withdrawMultipleERC20',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'contract IERC20[]', name: 'token', type: 'address[]' },
+      { internalType: 'address', name: 'target', type: 'address' },
+    ],
+    name: 'withdrawMultipleERC20Full',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'address payable',
@@ -502,17 +593,7 @@ export const paymasterAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-  {
-    inputs: [
-      { internalType: 'contract IERC20', name: 'token', type: 'address' },
-      { internalType: 'address', name: 'target', type: 'address' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-    ],
-    name: 'withdrawTokensTo',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
+  { stateMutability: 'payable', type: 'receive' },
 ];
 export const ENTRY_POINT_ABI = [
   {

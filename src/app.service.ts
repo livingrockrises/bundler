@@ -7,6 +7,7 @@ import {
   ENTRY_POINT_ABI,
   ENTRY_POINT_ADDRESS,
   PROVIDER_URL,
+  oracleAggregatorAddress,
 } from './constants';
 import { ethers, BigNumber } from 'ethers';
 import { hexConcat } from 'ethers/lib/utils';
@@ -124,9 +125,12 @@ export class AppService {
       const VALID_AFTER = '0x0000000000001234';
 
       const MOCK_SIG = '0x1234';
-      const ERC20_ADDR = '0x91c89A94567980f0e9723b487b0beD586eE96aa7';
-      const EX_RATE = '2891034400000000000'; // 2891034400000000000
-      const MOCK_FEE = '100000000000000000';
+      const ERC20_ADDR = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+
+      const EX_RATE = '865507'; // Bico old: 2891034400000000000
+      // ^ Can also query from oracle aggregator for supported tokens
+
+      const MOCK_FEE = '0'; // 2000000 should reject now
       const paymaster = new ethers.Contract(
         paymasterAddress,
         paymasterAbi,
@@ -138,7 +142,7 @@ export class AppService {
       const signature = '0x' + '00'.repeat(65);
       partialUserOp.paymasterAndData = hexConcat([
         paymasterAddress,
-        ethers.utils.hexlify(0).slice(0, 4),
+        ethers.utils.hexlify(1).slice(0, 4),
         encodedData,
         signature,
       ]);
@@ -150,10 +154,11 @@ export class AppService {
 
       const hash = await paymaster.getHash(
         partialUserOp,
-        ethers.utils.hexlify(0).slice(2, 4),
+        ethers.utils.hexlify(1).slice(2, 4),
         VALID_UNTIL,
         VALID_AFTER,
         ERC20_ADDR,
+        oracleAggregatorAddress,
         EX_RATE,
         MOCK_FEE,
       );
@@ -165,14 +170,21 @@ export class AppService {
       this.logger.log(`For userOp signedMessage is: ${signedMessage}`);
 
       const idAndSig = ethers.utils.defaultAbiCoder.encode(
-        ['uint48', 'uint48', 'address', 'uint256', 'uint256'],
-        [VALID_UNTIL, VALID_AFTER, ERC20_ADDR, EX_RATE, MOCK_FEE],
+        ['uint48', 'uint48', 'address', 'address', 'uint256', 'uint256'],
+        [
+          VALID_UNTIL,
+          VALID_AFTER,
+          ERC20_ADDR,
+          oracleAggregatorAddress,
+          EX_RATE,
+          MOCK_FEE,
+        ],
       );
       this.logger.log(`For userOp idAndSig is: ${idAndSig}`);
 
       const paymasterAndData = hexConcat([
         paymasterAddress,
-        ethers.utils.hexlify(0).slice(0, 4),
+        ethers.utils.hexlify(1).slice(0, 4),
         idAndSig,
         signedMessage,
       ]);
