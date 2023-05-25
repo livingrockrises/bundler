@@ -1,6 +1,6 @@
-export const paymasterAddress = '0xe68475Af0c6bE02Ee8eA915807EB0E5080Fb6565';
+export const paymasterAddress = '0xfD951441c6cBF26BfF3808C7118462A60bdb364b';
 export const oracleAggregatorAddress =
-  '0xDE7cA3CA67ED0FB94bb299a82E448567f8Ac4d49';
+  '0x8c60889F1959C4736898845459740a144a432A30';
 export const paymasterFundingKey = '0xD68fdc0B89010a9039C2C38f4a3E5c4Ed98f7bC1';
 export const chainId = 80001;
 export const ENTRY_POINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
@@ -16,35 +16,23 @@ export const paymasterAbi = [
         type: 'address',
       },
       { internalType: 'address', name: '_verifyingSigner', type: 'address' },
+      { internalType: 'address', name: '_weth9', type: 'address' },
     ],
     stateMutability: 'payable',
     type: 'constructor',
   },
-  {
-    inputs: [{ internalType: 'address', name: 'caller', type: 'address' }],
-    name: 'CallerIsNotAnEntryPoint',
-    type: 'error',
-  },
   { inputs: [], name: 'CanNotWithdrawToZeroAddress', type: 'error' },
+  { inputs: [], name: 'CannotBeUnrealisticValue', type: 'error' },
+  { inputs: [], name: 'DEXRouterCannotBeZero', type: 'error' },
   { inputs: [], name: 'DepositCanNotBeZero', type: 'error' },
   { inputs: [], name: 'EntryPointCannotBeZero', type: 'error' },
   { inputs: [], name: 'FeeReceiverCannotBeZero', type: 'error' },
-  {
-    inputs: [
-      { internalType: 'uint256', name: 'amountRequired', type: 'uint256' },
-      { internalType: 'uint256', name: 'currentBalance', type: 'uint256' },
-    ],
-    name: 'InsufficientTokenBalance',
-    type: 'error',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: 'sigLength', type: 'uint256' }],
-    name: 'InvalidPaymasterSignatureLength',
-    type: 'error',
-  },
-  { inputs: [], name: 'OracleAggregatorCannotBeZero', type: 'error' },
+  { inputs: [], name: 'NativeTokenBalanceZero', type: 'error' },
+  { inputs: [], name: 'NativeTokensWithdrawalFailed', type: 'error' },
   { inputs: [], name: 'OwnerCannotBeZero', type: 'error' },
+  { inputs: [], name: 'TokensAndAmountsLengthMismatch', type: 'error' },
   { inputs: [], name: 'VerifyingSignerCannotBeZero', type: 'error' },
+  { inputs: [], name: 'WETH9CannotBeZero', type: 'error' },
   {
     anonymous: false,
     inputs: [
@@ -134,6 +122,12 @@ export const paymasterAbi = [
         internalType: 'uint256',
         name: 'totalCharge',
         type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'oracleAggregator',
+        type: 'address',
       },
       {
         indexed: false,
@@ -246,10 +240,28 @@ export const paymasterAbi = [
     type: 'event',
   },
   {
+    inputs: [],
+    name: 'UNACCOUNTED_COST',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       { internalType: 'uint32', name: 'unstakeDelaySec', type: 'uint32' },
     ],
     name: 'addStake',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: '_token', type: 'address' },
+      { internalType: 'address', name: '_dexRouter', type: 'address' },
+      { internalType: 'uint256', name: '_amount', type: 'uint256' },
+    ],
+    name: 'approveRouterPrior',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -395,18 +407,18 @@ export const paymasterAbi = [
   },
   {
     inputs: [
-      { internalType: 'address', name: '_newVerifyingSigner', type: 'address' },
+      { internalType: 'uint256', name: '_newOverheadCost', type: 'uint256' },
     ],
-    name: 'setSigner',
+    name: 'setUnaccountedEPGasOverhead',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
-      { internalType: 'uint256', name: '_newOverheadCost', type: 'uint256' },
+      { internalType: 'address', name: '_newVerifyingSigner', type: 'address' },
     ],
-    name: 'setUnaccountedEPGasOverhead',
+    name: 'setVerifyingSigner',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -420,12 +432,12 @@ export const paymasterAbi = [
       { internalType: 'uint256', name: '_amount', type: 'uint256' },
       { internalType: 'uint256', name: '_maxDepositToEP', type: 'uint256' },
     ],
-    name: 'swapTokenForETHAndDeposit',
+    name: 'swapTokenForNativeAndDeposit',
     outputs: [
       { internalType: 'bool', name: 'success', type: 'bool' },
       { internalType: 'uint256', name: 'depositAmount', type: 'uint256' },
     ],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -433,13 +445,6 @@ export const paymasterAbi = [
     name: 'transferOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'unaccountedCost',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -501,16 +506,9 @@ export const paymasterAbi = [
   },
   {
     inputs: [{ internalType: 'address', name: 'dest', type: 'address' }],
-    name: 'withdrawAllETH',
+    name: 'withdrawAllNative',
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: 'dest', type: 'address' }],
-    name: 'withdrawAllETHTo',
-    outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -521,7 +519,17 @@ export const paymasterAbi = [
     ],
     name: 'withdrawERC20',
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'contract IERC20', name: 'token', type: 'address' },
+      { internalType: 'address', name: 'target', type: 'address' },
+    ],
+    name: 'withdrawERC20Full',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -532,7 +540,17 @@ export const paymasterAbi = [
     ],
     name: 'withdrawMultipleERC20',
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'contract IERC20[]', name: 'token', type: 'address[]' },
+      { internalType: 'address', name: 'target', type: 'address' },
+    ],
+    name: 'withdrawMultipleERC20Full',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -562,6 +580,7 @@ export const paymasterAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  { stateMutability: 'payable', type: 'receive' },
 ];
 export const ENTRY_POINT_ABI = [
   {
