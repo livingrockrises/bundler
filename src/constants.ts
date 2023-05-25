@@ -1,6 +1,6 @@
-export const paymasterAddress = '0x0987404beB853f24F36C76c3e18Adcad7AB44f93';
+export const paymasterAddress = '0x2ecd86799137FA35De834Da03D876bcc363ec0c3';
 export const oracleAggregatorAddress =
-  '0x7ED8428288323e8583DeFC90BFDF2dAD91cFF889';
+  '0x9130927806aC54F93Feb58Eb459c08dcA7D116F8';
 export const paymasterFundingKey = '0xD68fdc0B89010a9039C2C38f4a3E5c4Ed98f7bC1';
 export const chainId = 137;
 export const ENTRY_POINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
@@ -20,30 +20,16 @@ export const paymasterAbi = [
     stateMutability: 'payable',
     type: 'constructor',
   },
-  {
-    inputs: [{ internalType: 'address', name: 'caller', type: 'address' }],
-    name: 'CallerIsNotAnEntryPoint',
-    type: 'error',
-  },
   { inputs: [], name: 'CanNotWithdrawToZeroAddress', type: 'error' },
+  { inputs: [], name: 'CannotBeUnrealisticValue', type: 'error' },
+  { inputs: [], name: 'DEXRouterCannotBeZero', type: 'error' },
   { inputs: [], name: 'DepositCanNotBeZero', type: 'error' },
   { inputs: [], name: 'EntryPointCannotBeZero', type: 'error' },
   { inputs: [], name: 'FeeReceiverCannotBeZero', type: 'error' },
-  {
-    inputs: [
-      { internalType: 'uint256', name: 'amountRequired', type: 'uint256' },
-      { internalType: 'uint256', name: 'currentBalance', type: 'uint256' },
-    ],
-    name: 'InsufficientTokenBalance',
-    type: 'error',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: 'sigLength', type: 'uint256' }],
-    name: 'InvalidPaymasterSignatureLength',
-    type: 'error',
-  },
-  { inputs: [], name: 'OracleAggregatorCannotBeZero', type: 'error' },
+  { inputs: [], name: 'NativeTokenBalanceZero', type: 'error' },
+  { inputs: [], name: 'NativeTokensWithdrawalFailed', type: 'error' },
   { inputs: [], name: 'OwnerCannotBeZero', type: 'error' },
+  { inputs: [], name: 'TokensAndAmountsLengthMismatch', type: 'error' },
   { inputs: [], name: 'VerifyingSignerCannotBeZero', type: 'error' },
   { inputs: [], name: 'WETH9CannotBeZero', type: 'error' },
   {
@@ -253,6 +239,13 @@ export const paymasterAbi = [
     type: 'event',
   },
   {
+    inputs: [],
+    name: 'UNACCOUNTED_COST',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       { internalType: 'uint32', name: 'unstakeDelaySec', type: 'uint32' },
     ],
@@ -451,13 +444,6 @@ export const paymasterAbi = [
     name: 'transferOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'unaccountedCost',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
     type: 'function',
   },
   {
