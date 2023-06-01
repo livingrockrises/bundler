@@ -130,7 +130,7 @@ export class AppService {
       const EX_RATE = '865507'; // Bico old: 2891034400000000000
       // ^ Can also query from oracle aggregator for supported tokens
 
-      const MOCK_FEE = '0'; // 2000000 should reject now
+      const DEFAULT_FEE_MARKUP = 1100000;
       const paymaster = new ethers.Contract(
         paymasterAddress,
         paymasterAbi,
@@ -160,7 +160,7 @@ export class AppService {
         ERC20_ADDR,
         oracleAggregatorAddress,
         EX_RATE,
-        MOCK_FEE,
+        DEFAULT_FEE_MARKUP,
       );
       this.logger.log(`For userOp hash is: ${hash}`);
 
@@ -170,14 +170,14 @@ export class AppService {
       this.logger.log(`For userOp signedMessage is: ${signedMessage}`);
 
       const idAndSig = ethers.utils.defaultAbiCoder.encode(
-        ['uint48', 'uint48', 'address', 'address', 'uint256', 'uint256'],
+        ['uint48', 'uint48', 'address', 'address', 'uint256', 'uint32'],
         [
           VALID_UNTIL,
           VALID_AFTER,
           ERC20_ADDR,
           oracleAggregatorAddress,
           EX_RATE,
-          MOCK_FEE,
+          DEFAULT_FEE_MARKUP,
         ],
       );
       this.logger.log(`For userOp idAndSig is: ${idAndSig}`);
