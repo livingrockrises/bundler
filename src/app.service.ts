@@ -19,10 +19,14 @@ dotenv.config();
 export class AppService {
   readonly logger = new Logger(AppService.name);
   // provider = new ethers.providers.JsonRpcProvider('https://eth-goerli.g.alchemy.com/v2/477qAVdmEssSZbEPaUMTZXqyetQx5fxg')
-  provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
+  provider = new ethers.providers.JsonRpcProvider(
+    process.env.PROVIDER_URL_MUMBAI,
+  );
   biconomyPaymasterSigningKey = process.env.VERIFYING_SIGNER_PRIVATE_KEY;
   signer = new ethers.Wallet(this.biconomyPaymasterSigningKey);
-  web3Provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
+  web3Provider = new ethers.providers.JsonRpcProvider(
+    process.env.PROVIDER_URL_MUMBAI,
+  );
 
   getHello(): string {
     return 'Hello World!';
