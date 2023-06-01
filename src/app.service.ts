@@ -127,7 +127,7 @@ export class AppService {
       const MOCK_SIG = '0x1234';
       const ERC20_ADDR = '0xdA5289fCAAF71d52a80A254da614a192b693e977';
       const EX_RATE = '1002100';
-      const MOCK_FEE = '0';
+      const DEFAULT_FEE_MARKUP = 1100000;
       const paymaster = new ethers.Contract(
         paymasterAddress,
         paymasterAbi,
@@ -157,7 +157,7 @@ export class AppService {
         ERC20_ADDR,
         oracleAggregatorAddress,
         EX_RATE,
-        MOCK_FEE,
+        DEFAULT_FEE_MARKUP,
       );
       this.logger.log(`For userOp hash is: ${hash}`);
 
@@ -167,14 +167,14 @@ export class AppService {
       this.logger.log(`For userOp signedMessage is: ${signedMessage}`);
 
       const idAndSig = ethers.utils.defaultAbiCoder.encode(
-        ['uint48', 'uint48', 'address', 'address', 'uint256', 'uint256'],
+        ['uint48', 'uint48', 'address', 'address', 'uint256', 'uint32'],
         [
           VALID_UNTIL,
           VALID_AFTER,
           ERC20_ADDR,
           oracleAggregatorAddress,
           EX_RATE,
-          MOCK_FEE,
+          DEFAULT_FEE_MARKUP,
         ],
       );
       this.logger.log(`For userOp idAndSig is: ${idAndSig}`);
