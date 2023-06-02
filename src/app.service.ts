@@ -1,5 +1,9 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { UserOpType, VerifyingUserOpMiddlewareDataType } from './types';
+import {
+  PaymasterServiceDataType,
+  UserOpType,
+  VerifyingUserOpMiddlewareDataType,
+} from './types';
 import {
   paymasterAddress,
   paymasterAbi,
@@ -111,9 +115,14 @@ export class AppService {
   //   }
   // }
 
-  async signUserOpMessage(userOp: UserOpType) {
+  async signUserOpMessage(
+    userOp: UserOpType,
+    paymasterServiceData: PaymasterServiceDataType,
+  ) {
     try {
       const partialUserOp: any = userOp;
+      const erc20Address: string =
+        paymasterServiceData.tokenPaymasterData?.feeTokenAddress;
       // const {
       //   paymasterAddress,
       //   paymasterAbi,
@@ -129,7 +138,15 @@ export class AppService {
       const VALID_AFTER = '0x0000000000001234';
 
       const MOCK_SIG = '0x1234';
-      const ERC20_ADDR = '0xdA5289fCAAF71d52a80A254da614a192b693e977';
+      console.log('=================>>>>>>>>>>>>>> erc20 Address');
+      console.log(erc20Address);
+      const ERC20_ADDR = erc20Address;
+
+      // 1. check if erc20 supported
+      // 2. get fee markup based on erc20 address
+      // 3. get ex rate based on erc20 address
+      // 4. use oracle aggregator address accordingly
+      // 5. use the price source 1 if oracle aggregator is used
       const EX_RATE = '1002100';
       const DEFAULT_FEE_MARKUP = 1100000;
       const paymaster = new ethers.Contract(
